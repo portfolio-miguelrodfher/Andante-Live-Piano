@@ -120,19 +120,32 @@ function App() {
     localStorage.setItem('andante-score-zoom', String(zoom))
   }, [zoom])
 
+  const soundUserNote = useCallback((midi: number, velocity = 90) => {
+    const duration = Math.max(0.28, 0.9 * (velocity / 127))
+    void pianoInstrument
+      .initialize()
+      .then(() => pianoInstrument.trigger([midi], duration))
+      .catch((error: unknown) => {
+        setPianoLoadStatus('error')
+        setPianoLoadError(error instanceof Error ? error.message : 'The concert grand piano could not be started.')
+      })
+  }, [pianoInstrument])
+
   useEffect(() => {
     return midiManager.onNote((note) => {
       setPressedNotes((current) => [...new Set([...current, note.noteNumber])])
+      soundUserNote(note.noteNumber, note.velocity)
       practiceEngine.receiveNote(note)
       window.setTimeout(() => {
         setPressedNotes((current) => current.filter((noteNumber) => noteNumber !== note.noteNumber))
       }, 180)
     })
-  }, [practiceEngine])
+  }, [practiceEngine, soundUserNote])
 
   const handleNoteInput = (input: NoteInputEvent) => {
     if (input.type === 'noteon') {
       setPressedNotes((current) => [...new Set([...current, input.midi])])
+      soundUserNote(input.midi, input.velocity)
       practiceEngine.receiveInput(input)
       return
     }
@@ -215,7 +228,7 @@ function App() {
         <button className="rail-button active" title="Practice" type="button">
           <Home size={18} />
         </button>
-        <button className="rail-button" title="Library" type="button">
+        <button className="rail-button" title="Open a score" type="button" onClick={() => fileInputRef.current?.click()}>
           <Music2 size={18} />
         </button>
         <button className="rail-button" title="Open MusicXML" type="button" onClick={() => fileInputRef.current?.click()}>
@@ -230,9 +243,9 @@ function App() {
       <ErrorBoundary name="PracticeView" onError={handleScoreDisplayError}>
       <section className="practice-screen">
         <header className="topbar">
-          <button className="library-link" type="button">
+          <button className="library-link" type="button" onClick={() => fileInputRef.current?.click()}>
             <Library size={16} />
-            Library
+            Open score
           </button>
           <div className="title-block">
             <img className="site-logo" src={`${import.meta.env.BASE_URL}andante-logo.svg`} alt="" />
@@ -321,6 +334,13 @@ function App() {
           }}
           onSpeedChange={setSpeed}
           onToggleHarmony={() => setHarmonyOpen((isOpen) => !isOpen)}
+          onToggleFullscreen={() => {
+            if (document.fullscreenElement) {
+              void document.exitFullscreen()
+            } else {
+              void document.documentElement.requestFullscreen()
+            }
+          }}
         />
 
         <ErrorBoundary name="PianoKeyboard" onError={handleScoreDisplayError}>
