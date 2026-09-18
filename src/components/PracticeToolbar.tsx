@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Maximize2, Pause, Play, RotateCcw, Search, Square, Timer, ZoomIn, ZoomOut } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Maximize2, Pause, Play, RotateCcw, Square, Timer, ZoomIn, ZoomOut } from 'lucide-react'
 import type { PianoLoadStatus, PlaybackStatus } from '../playback/PlaybackTypes'
 import type { HandMode } from '../practice/PracticeTypes'
 
@@ -21,6 +21,7 @@ interface PracticeToolbarProps {
   onStop: () => void
   onSpeedChange: (speed: number) => void
   onToggleHarmony: () => void
+  onToggleFullscreen: () => void
 }
 
 export function PracticeToolbar({
@@ -42,6 +43,7 @@ export function PracticeToolbar({
   onStop,
   onSpeedChange,
   onToggleHarmony,
+  onToggleFullscreen,
 }: PracticeToolbarProps) {
   const playDisabled = pianoLoadStatus !== 'ready'
   const playLabel = playbackStatus === 'playing'
@@ -120,14 +122,10 @@ export function PracticeToolbar({
 
       <div className="toolbar-group secondary">
         <span className="measure-status">{measureNumber ? `Measure ${measureNumber}` : 'Ready'}</span>
-        <button type="button" title="Loop region">
-          <Search size={16} />
-          Loop
-        </button>
         <button type="button" className={harmonyOpen ? 'selected-button' : ''} onClick={onToggleHarmony}>
           Harmony
         </button>
-        <button type="button" title="Full screen">
+        <button type="button" title="Full screen" onClick={onToggleFullscreen}>
           <Maximize2 size={16} />
         </button>
       </div>
